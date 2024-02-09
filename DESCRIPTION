@@ -1,7 +1,7 @@
 Package: MyPackage
 Type: Package
 Title: IDF modelling
-Version: 0.1.0
+Version: 0.1.1
 Author: Evgeniya Tsavelidze
 Maintainer: Evgeniya <xtsae001@studenti.czu.cz>
 Description: imports *.nc files and calculates multiple IDF models

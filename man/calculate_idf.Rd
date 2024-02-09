@@ -26,12 +26,12 @@ calculate_idf(
 }
 \value{
 a list containing two elements:
-  - 'data': a data table with columns for location id, duration, return period, and corresponding IDF values
+  - 'data': a data table
   - 'plot': a ggplot object visualizing the IDF curve
 }
 \description{
 This function calculates IDF quantiles based on input data and parameters, and
-generates a plot for visual representation of the IDF curve
+generates a plot for visual representation of the curve
 }
 \examples{
 idf_result <- calculate_idf(data_list = my_data, return_periods = c(2, 5, 10, 25, 50, 100), durations = c(1, 2, 5, 10, 24, 48))

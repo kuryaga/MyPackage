@@ -1,6 +1,3 @@
-library(ncdf4); library(ncdf4.helpers)
-library(terra); library(data.table)
-
 #' Process NetCDF data and extract values for specified locations
 #'
 #' This function reads NetCDF files from a specified directory, extracts relevant
@@ -20,52 +17,40 @@ library(terra); library(data.table)
 extract_values_from_nc <- function(data_directory = "./data",
                                    file_pattern = ".nc",
                                    location_ids)  {
-  # Checking if the directory exists
   if (!dir.exists(data_directory)) {
     message("Specified directory does not exist")
     return(NULL)
   }
 
-  # Listing NetCDF files
-  files <- list.files(path = data_directory,
-                      recursive = TRUE,
-                      pattern = file_pattern,
-                      full.names = TRUE)
+  files <- base::list.files(path = data_directory,
+                            recursive = TRUE,
+                            pattern = file_pattern,
+                            full.names = TRUE)
 
-  # Checking if any files match the pattern
-  if (length(files) == 0) {
-    stop("No files matching the specified pattern were found")
-  }
-
-  # Using lapply to read and process each file
-  data_all <- lapply(
+  data_all <- base::lapply(
     X = files,
     FUN = function(file) {
-      e <- try({
-        nc <- nc_open(filename = file)
+      e <- base::try({
+        nc <- ncdf4::nc_open(filename = file)
 
-        # Extracting relevant variables
-        lon <- ncvar_get(nc = nc, varid = "lon")
-        lat <- ncvar_get(nc = nc, varid = "lat")
-        pr <- ncvar_get(nc = nc, varid = "pr")
-        time <- as.POSIXct(nc.get.time.series(f = nc), format = "%Y-%m-%d %H:%M:%S")
+        lon <- ncdf4::ncvar_get(nc = nc, varid = "lon")
+        lat <- ncdf4::ncvar_get(nc = nc, varid = "lat")
+        pr <- ncdf4::ncvar_get(nc = nc, varid = "pr")
+        time <- base::as.POSIXct(ncdf4.helpers::nc.get.time.series(f = nc), format = "%Y-%m-%d %H:%M:%S")
 
-        nc_close(nc = nc)
+        ncdf4::nc_close(nc = nc)
 
-        #c Creating a terra raster object
-        r <- rast(x = pr)
-        ext(x = r) <- c(range(lon), range(lat))
-        crs(x = r) <- "epsg:4326"
+        r <- terra::rast(x = pr)
+        terra::ext(x = r) <- c(base::range(lon), base::range(lat))
+        terra::crs(x = r) <- "epsg:4326"
 
-        # Extracting values for specified location IDs
-        xy <- xyFromCell(object = r, cell = location_ids)
-        val <- t(x = extract(x = r, y = xy))
+        xy <- terra::xyFromCell(object = r, cell = location_ids)
+        val <- base::t(x = terra::extract(x = r, y = xy))
 
-        # Creating a data.table with time and values
-        data <- data.table(time = time, value = val)
+        data <- data.table::data.table(time = time, value = val)
       }, silent = TRUE)
 
-      if (inherits(x = e, what = "try-error")) {
+      if (base::inherits(x = e, what = "try-error")) {
         return(NULL)
       } else {
         return(data)
@@ -73,23 +58,17 @@ extract_values_from_nc <- function(data_directory = "./data",
     }
   )
 
-  # Combining the list of data tables into a single data table
-  data_all <- rbindlist(l = data_all)
+  data_all <- data.table::rbindlist(l = data_all)
 
-  # Reshaping from wide to long format
-  data_all_m <- melt(data = data_all,
-                     id.vars = "time",
-                     variable.name = "location_id")
+  data_all_m <- data.table::melt(data = data_all,
+                                 id.vars = "time",
+                                 variable.name = "location_id")
 
-  #c Calculating the maximum value for each location and year
-  max_values <- data_all_m[, .(max_value = max(value)),
-                           by = .(location_id, year(x = time))]
+  max_values <- data_all_m[, .(max_value = base::max(value)),
+                           by = .(location_id, lubridate::year(x = time))]
 
-  # Splitting table by location_id
-  split_data <- split(x = data_all_m,
-                      f = data_all_m$location_id)
+  split_data <- base::split(x = data_all_m,
+                            f = data_all_m$location_id)
 
-  # Returning the list of data tables split by location_id
   return(split_data)
-
 }

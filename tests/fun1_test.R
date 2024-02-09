@@ -1,7 +1,8 @@
-# Testing if extract_values_from_nc returns a list
+library(testthat)
+
 test_that("extract_values_from_nc returns a list", {
 
-  result <- extract_values_from_nc(data_directory = "./data",
+  result <- extract_values_from_nc(data_directory = "./adv_r_data",
                                    file_pattern = ".nc",
                                    location_ids = c(327, 328, 329))
 
@@ -9,7 +10,6 @@ test_that("extract_values_from_nc returns a list", {
 })
 
 
-# Testing if extract_values_from_nc handles invalid directory
 test_that("extract_values_from_nc handles invalid directory", {
 
   invalid_result <- extract_values_from_nc(data_directory = "./invalid_directory",
